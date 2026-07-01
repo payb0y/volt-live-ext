@@ -41,9 +41,12 @@ function render(s) {
   $('state').className = 'dot' + (s.streaming ? ' on' : '')
   const reach = s.panelReach == null ? '—' : s.panelReach === 200 ? '<span class="ok">OK</span>' : '<span class="bad">' + s.panelReach + '</span>'
   const status = s.status == null ? '—' : '<span class="' + (s.status === 200 ? 'ok' : 'bad') + '">' + s.status + '</span>'
+  const stage = s.stage ? '<br>Stage: <b>' + s.stage + '</b>' : ''
+  const err = s.lastError ? '<br>Last error: <span class="bad">' + s.lastError + '</span>' : ''
   $('body').innerHTML =
     'Now playing: <b>' + (s.channel || '—') + '</b><br>' +
-    'Stream: ' + status + ' · ' + (s.bytes ? Math.round(s.bytes / 1e6) + ' MB' : '0 MB') + '<br>' +
+    'Stream: ' + status + ' · ' + (s.bytes ? Math.round(s.bytes / 1e6) + ' MB' : '0 MB') +
+    stage + err + '<br>' +
     'Panel reach: ' + reach
 }
 
