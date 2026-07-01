@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    :root {
+      --bg:#0b0c12; --card:#1b1e29; --line:rgb(255 255 255 / 0.10);
+      --text:#eceef2; --soft:#cdd0d8; --muted:#8b90a0;
+      --accent:#8b7ff0; --accent-hover:#a89dff; --on-accent:#16122b;
+      --good:#5dcaa5; --warn:#efa52a; --danger:#e2696b;
+    }
+    body { width:260px; margin:0; background:var(--bg); color:var(--text); font:13px/1.5 system-ui, sans-serif; }
+    .hdr { display:flex; align-items:center; gap:8px; padding:12px 14px; border-bottom:1px solid var(--line); }
+    .spacer { margin-left:auto; display:flex; align-items:center; gap:8px; }
+    .src { border:1px solid var(--line); border-radius:6px; padding:2px 7px; font:12px monospace; color:var(--accent-hover); text-decoration:none; }
+    .dot { font-size:11px; color:var(--muted); } .dot.on { color:var(--good); }
+    .body { padding:12px 14px; color:var(--soft); } .body b { color:var(--text); }
+    .ok { color:var(--good); } .bad { color:var(--danger); }
+    .actions { display:flex; gap:8px; padding:10px 14px; border-top:1px solid var(--line); }
+    .actions button { flex:1; border-radius:10px; padding:6px; font:12px system-ui; cursor:pointer; border:1px solid var(--line); background:transparent; color:var(--soft); }
+    .actions button.primary { background:var(--accent); color:var(--on-accent); border-color:var(--accent); font-weight:700; }
+    .msg { padding:0 14px 8px; font-size:11.5px; min-height:14px; }
+    .msg.err { color:var(--danger); } .msg.ok { color:var(--good); }
+    .foot { display:flex; justify-content:space-between; padding:8px 14px; border-top:1px solid var(--line); font-size:10.5px; color:var(--muted); }
+    .foot a { color:var(--accent-hover); text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="hdr">
+    <img src="icons/icon48.png" width="18" height="18" alt="" style="display:block;border-radius:4px" /><b>Volt Live</b>
+    <span class="spacer">
+      <a class="src" href="https://github.com/payb0y/volt-live-ext" target="_blank" title="View source">&lt;/&gt;</a>
+      <span id="state" class="dot">● idle</span>
+    </span>
+  </div>
+  <div class="body" id="body">Open a live channel in Volt to begin.</div>
+  <div class="actions">
+    <button id="test" class="primary">Test panel</button>
+    <button id="copy">Copy log</button>
+  </div>
+  <div id="msg" class="msg"></div>
+  <div class="foot"><span id="ver">v1.0.0</span><a href="https://github.com/payb0y/volt-live-ext" target="_blank">Open source ↗</a></div>
+  <script src="popup.js"></script>
+</body>
+</html>

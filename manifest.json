@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Volt Live",
+  "version": "1.0.0",
+  "description": "Plays Volt's live TV by streaming the HTTP IPTV feed in the extension so the HTTPS app never makes a mixed-content request. Stores no credentials.",
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "background": { "service_worker": "background.js" },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Volt Live",
+    "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://voltstreaming.xyz/*", "http://localhost:3000/*", "http://127.0.0.1:3000/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
