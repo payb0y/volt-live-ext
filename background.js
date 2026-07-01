@@ -47,32 +47,40 @@ chrome.runtime.onConnect.addListener((port) => {
       return
     }
     record(tabId, { streaming: true, bytes: 0, status: null })
-    try {
-      const res = await fetch(msg.url, { cache: 'no-store', redirect: 'follow' })
-      record(tabId, { status: res.status })
-      port.postMessage({ type: 'status', status: res.status })
-      if (!res.ok || !res.body) {
-        port.postMessage({ type: 'end', reason: 'status ' + res.status })
-        return
-      }
-      reader = res.body.getReader()
-      let bytes = 0
-      while (!aborted) {
-        const { done, value } = await reader.read()
-        if (done) {
-          port.postMessage({ type: 'end', reason: 'eof' })
-          break
+
+    // The panel load-balances each request to a rotating CDN session, and a node
+    // is occasionally slow or drops immediately (intermittent "Failed to fetch").
+    // Re-fetch the panel URL (which issues a FRESH redirect to another session)
+    // and retry a few consecutive times. Any healthy data resets the counter, so
+    // a mid-stream drop on a live channel reconnects too. We never surface the
+    // transient failure to the player unless the retries are exhausted.
+    const MAX_FAILS = 5
+    const BACKOFF_MS = 1200
+    let total = 0
+    let fails = 0
+    while (!aborted && fails < MAX_FAILS) {
+      try {
+        const res = await fetch(msg.url, { cache: 'no-store', redirect: 'follow' })
+        record(tabId, { status: res.status })
+        if (!res.ok || !res.body) throw new Error('status ' + res.status)
+        reader = res.body.getReader()
+        while (!aborted) {
+          const { done, value } = await reader.read()
+          if (done) throw new Error('stream ended') // live shouldn't EOF — reconnect
+          fails = 0
+          total += value.byteLength
+          if ((total & 0xfffff) < value.byteLength) record(tabId, { bytes: total }) // ~every 1 MB
+          port.postMessage({ type: 'chunk', b64: u8ToB64(value) })
         }
-        bytes += value.byteLength
-        if ((bytes & 0xfffff) < value.byteLength) record(tabId, { bytes }) // ~every 1 MB
-        port.postMessage({ type: 'chunk', b64: u8ToB64(value) })
+      } catch (e) {
+        if (aborted) break
+        fails += 1
+        console.error(`[volt-live] stream attempt failed (${fails}/${MAX_FAILS}):`, e && e.message ? e.message : e)
+        if (fails < MAX_FAILS) await new Promise((r) => setTimeout(r, BACKOFF_MS))
       }
-    } catch (e) {
-      console.error('[volt-live] stream fetch FAILED', msg.url, e)
-      port.postMessage({ type: 'error', error: e && e.message ? e.message : String(e) })
-    } finally {
-      record(tabId, { streaming: false })
     }
+    if (!aborted) port.postMessage({ type: 'error', error: 'Channel unavailable after several tries' })
+    record(tabId, { streaming: false })
   })
 })
 
