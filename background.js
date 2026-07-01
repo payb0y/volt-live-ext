@@ -19,6 +19,14 @@ function record(tabId, patch) {
   tabState.set(tabId, s)
 }
 
+// Broad host access is an OPTIONAL permission the user grants from the popup on
+// first use — so the install shows no scary "all sites" warning. Nothing fetches
+// until it's granted.
+const HOST_PERMS = { origins: ['http://*/*', 'https://*/*'] }
+function hasPerm() {
+  return new Promise((resolve) => chrome.permissions.contains(HOST_PERMS, resolve))
+}
+
 // --- streaming (Port) ---
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== 'ts-stream') return
@@ -34,6 +42,10 @@ chrome.runtime.onConnect.addListener((port) => {
 
   port.onMessage.addListener(async (msg) => {
     if (msg.type !== 'start') return
+    if (!(await hasPerm())) {
+      port.postMessage({ type: 'error', error: 'not-enabled' })
+      return
+    }
     record(tabId, { streaming: true, bytes: 0, status: null })
     try {
       const res = await fetch(msg.url, { cache: 'no-store', redirect: 'follow' })
@@ -73,6 +85,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return
   }
 
+  if (msg.type === 'permState') {
+    hasPerm().then((granted) => sendResponse({ granted }))
+    return true
+  }
+
   if (msg.type === 'status') {
     sendResponse(tabState.get(msg.tabId) || null)
     return
@@ -85,15 +102,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse({ ok: false, error: 'no channel loaded yet' })
       return
     }
-    fetch(url, { cache: 'no-store', redirect: 'follow' })
-      .then((res) => {
-        record(msg.tabId, { panelReach: res.status })
-        sendResponse({ ok: true, status: res.status })
-      })
-      .catch((e) => {
-        record(msg.tabId, { panelReach: 0 })
-        sendResponse({ ok: false, error: e && e.message ? e.message : String(e) })
-      })
+    hasPerm().then((granted) => {
+      if (!granted) {
+        sendResponse({ ok: false, error: 'not-enabled' })
+        return
+      }
+      fetch(url, { cache: 'no-store', redirect: 'follow' })
+        .then((res) => {
+          record(msg.tabId, { panelReach: res.status })
+          sendResponse({ ok: true, status: res.status })
+        })
+        .catch((e) => {
+          record(msg.tabId, { panelReach: 0 })
+          sendResponse({ ok: false, error: e && e.message ? e.message : String(e) })
+        })
+    })
     return true
   }
 })

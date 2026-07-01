@@ -20,7 +20,11 @@ window.addEventListener('message', (e) => {
   if (!d || typeof d !== 'object' || !d[TAG]) return
 
   if (d[TAG] === 'ping') {
-    window.postMessage({ [TAG]: 'pong', id: d.id, version: VERSION }, ORIGIN)
+    // Report both presence and whether the optional host permission is granted,
+    // so the app can distinguish "not installed" from "installed but not enabled".
+    chrome.runtime.sendMessage({ type: 'permState' }, (r) => {
+      window.postMessage({ [TAG]: 'pong', id: d.id, version: VERSION, granted: !!(r && r.granted) }, ORIGIN)
+    })
     return
   }
 

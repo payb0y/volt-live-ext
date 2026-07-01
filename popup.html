@@ -33,12 +33,23 @@
       <span id="state" class="dot">● idle</span>
     </span>
   </div>
-  <div class="body" id="body">Open a live channel in Volt to begin.</div>
-  <div class="actions">
-    <button id="test" class="primary">Test panel</button>
-    <button id="copy">Copy log</button>
+  <div id="enable-view" style="display:none">
+    <div class="body">
+      One-time permission is needed to stream your channels.
+      <br /><span style="color:var(--muted)">It only fetches the streams the Volt page asks for — no credentials are stored.</span>
+    </div>
+    <div class="actions">
+      <button id="enable" class="primary">Enable live streaming</button>
+    </div>
   </div>
-  <div id="msg" class="msg"></div>
+  <div id="status-view" style="display:none">
+    <div class="body" id="body">Open a live channel in Volt to begin.</div>
+    <div class="actions">
+      <button id="test" class="primary">Test panel</button>
+      <button id="copy">Copy log</button>
+    </div>
+    <div id="msg" class="msg"></div>
+  </div>
   <div class="foot"><span id="ver">v1.0.0</span><a href="https://github.com/payb0y/volt-live-ext" target="_blank">Open source ↗</a></div>
   <script src="popup.js"></script>
 </body>

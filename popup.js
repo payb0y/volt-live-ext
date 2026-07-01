@@ -1,5 +1,18 @@
 const $ = (id) => document.getElementById(id)
 
+const HOST_PERMS = { origins: ['http://*/*', 'https://*/*'] }
+
+// Show the enable view until the optional host permission is granted; then the
+// normal status/diagnostics view. Requesting must happen from this user gesture.
+function checkPerm() {
+  $('ver').textContent = 'v' + chrome.runtime.getManifest().version
+  chrome.permissions.contains(HOST_PERMS, (granted) => {
+    $('enable-view').style.display = granted ? 'none' : 'block'
+    $('status-view').style.display = granted ? 'block' : 'none'
+    if (granted) refresh()
+  })
+}
+
 let msgTimer
 function showMsg(text, kind) {
   const el = $('msg')
@@ -62,4 +75,12 @@ $('copy').addEventListener('click', async () => {
   })
 })
 
-refresh()
+$('enable').addEventListener('click', () => {
+  $('enable').textContent = 'Requesting…'
+  chrome.permissions.request(HOST_PERMS, () => {
+    $('enable').textContent = 'Enable live streaming'
+    checkPerm()
+  })
+})
+
+checkPerm()

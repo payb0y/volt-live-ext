@@ -15,13 +15,17 @@ The page never makes an HTTP request.
 
 ## Permissions
 
-`host_permissions: http://*/*, https://*/*` — the panel redirects live streams to
-rotating CDN IPs, so a fixed host can't be listed. The extension only fetches URLs
-the Volt page hands it, and the content-script bridge is origin-locked to Volt.
+Host access (`http://*/*, https://*/*`) is an **optional** permission, granted by
+the user from the popup on first use — so the install shows no "all sites" warning
+and nothing is fetched until you opt in. Broad access is required because the panel
+redirects live streams to **rotating CDN IPs**, so a fixed host can't be listed. The
+extension only fetches URLs the Volt page hands it, and the content-script bridge is
+origin-locked to Volt (`voltstreaming.xyz`).
 
 ## No credentials
 
 The extension contains no username/password and no panel address. The Volt app
-supplies stream URLs at runtime. This source is exactly what ships.
+supplies stream URLs at runtime. This source is exactly what ships. See
+[PRIVACY.md](PRIVACY.md).
 
 MIT licensed.
